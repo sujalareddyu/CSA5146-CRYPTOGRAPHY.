@@ -1,0 +1,94 @@
+import string
+
+# Function to preprocess the plaintext message
+def preprocess_message(message):
+    # Remove spaces and convert to uppercase
+    message = message.replace(" ", "").upper()
+    # Replace 'J' with 'I' (standard Playfair cipher rule)
+    message = message.replace("J", "I")
+    # Split the message into pairs of characters
+    pairs = []
+    i = 0
+    while i < len(message):
+        if i == len(message) - 1 or message[i] == message[i + 1]:
+            pairs.append(message[i] + 'X')
+            i += 1
+        else:
+            pairs.append(message[i] + message[i + 1])
+            i += 2
+    return pairs
+
+# Function to create the Playfair matrix
+def create_playfair_matrix(key):
+    # Remove spaces and convert to uppercase
+    key = key.replace(" ", "").upper()
+    # Replace 'J' with 'I' (standard Playfair cipher rule)
+    key = key.replace("J", "I")
+    
+    # Initialize matrix with 5x5 grid filled with None
+    matrix = [['' for _ in range(5)] for _ in range(5)]
+    # Initialize set to keep track of used characters
+    used = set()
+    
+    # Fill the matrix with the key
+    row, col = 0, 0
+    for letter in key:
+        if letter not in used:
+            matrix[row][col] = letter
+            used.add(letter)
+            col += 1
+            if col == 5:
+                col = 0
+                row += 1
+    
+    # Fill the remaining matrix with other letters (A-Z except 'J'/'I' already used)
+    alphabet = string.ascii_uppercase.replace("J", "")
+    for letter in alphabet:
+        if letter not in used:
+            matrix[row][col] = letter
+            used.add(letter)
+            col += 1
+            if col == 5:
+                col = 0
+                row += 1
+            if row == 5:
+                break
+    
+    return matrix
+
+# Function to find the coordinates of a letter in the Playfair matrix
+def find_position(matrix, letter):
+    for i in range(5):
+        for j in range(5):
+            if matrix[i][j] == letter:
+                return (i, j)
+    return None
+
+# Function to encrypt a message using the Playfair cipher
+def playfair_encrypt(message, key):
+    matrix = create_playfair_matrix(key)
+    pairs = preprocess_message(message)
+    ciphertext = []
+    
+    for pair in pairs:
+        first_char, second_char = pair[0], pair[1]
+        row1, col1 = find_position(matrix, first_char)
+        row2, col2 = find_position(matrix, second_char)
+        
+        if row1 == row2:
+            ciphertext.append(matrix[row1][(col1 + 1) % 5])
+            ciphertext.append(matrix[row2][(col2 + 1) % 5])
+        elif col1 == col2:
+            ciphertext.append(matrix[(row1 + 1) % 5][col1])
+            ciphertext.append(matrix[(row2 + 1) % 5][col2])
+        else:
+            ciphertext.append(matrix[row1][col2])
+            ciphertext.append(matrix[row2][col1])
+    
+    return ''.join(ciphertext)
+
+# Example usage
+plaintext = "Must see you over Cadogan West. Coming at once"
+key = "Playfair example"
+encrypted_message = playfair_encrypt(plaintext, key)
+print("Encrypted message:", encrypted_message)
