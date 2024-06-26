@@ -1,0 +1,31 @@
+from collections import Counter
+
+# Example ciphertext (assuming encrypted using described method)
+ciphertext = [2023, 401, 1504, 1008, 2809, 504, 401, 2809, 2809, 401, 504]
+
+# Frequency analysis on ciphertext
+frequency = Counter(ciphertext)
+sorted_frequency = frequency.most_common()
+
+print("Frequency of ciphertext characters:")
+for char, count in sorted_frequency:
+    print(f"Character: {char}, Frequency: {count}")
+
+# Assuming English language plaintext frequency (most common)
+most_common_plaintext_char = 4  # Assuming 'e' is the most common plaintext character
+most_common_ciphertext = sorted_frequency[0][0]
+
+# Example of known plaintext attack
+known_plaintext = [4]  # Assuming we know or guess the plaintext character is 'e'
+
+# Encrypt the known plaintext using the same RSA encryption method
+encrypted_known_plaintext = [pow(char, e, n) for char in known_plaintext]
+
+print("\nEncrypted known plaintext:")
+print(encrypted_known_plaintext)
+
+# Compare encrypted known plaintext with intercepted ciphertext to deduce mappings
+for i in range(len(encrypted_known_plaintext)):
+    print(f"Plaintext character: {known_plaintext[i]} -> Ciphertext character: {ciphertext[i]}")
+
+# In a real attack, this process would be automated and extended to cover more ciphertext and potentially more known plaintext scenarios.
