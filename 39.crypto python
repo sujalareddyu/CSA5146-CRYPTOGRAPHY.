@@ -1,0 +1,94 @@
+import string
+import operator
+
+# Frequencies of letters in English language (from most to least common)
+english_letter_frequencies = {
+    'E': 12.02, 'T': 9.10, 'A': 8.12, 'O': 7.68, 'I': 7.31, 'N': 6.95, 'S': 6.28, 'R': 6.02,
+    'H': 5.92, 'D': 4.32, 'L': 3.98, 'U': 2.88, 'C': 2.71, 'M': 2.61, 'F': 2.30, 'Y': 2.11,
+    'W': 2.09, 'G': 2.03, 'P': 1.82, 'B': 1.49, 'V': 1.11, 'K': 0.69, 'X': 0.17, 'Q': 0.11,
+    'J': 0.10, 'Z': 0.07
+}
+
+def load_ciphertext(filename):
+    with open(filename, 'r') as file:
+        ciphertext = file.read().strip().upper()
+    return ciphertext
+
+def decrypt_with_shift(ciphertext, shift):
+    # Decrypt ciphertext using a given shift value
+    plaintext = []
+    for char in ciphertext:
+        if char in string.ascii_uppercase:
+            index = (ord(char) - ord('A') - shift) % 26
+            plaintext.append(chr(index + ord('A')))
+        else:
+            plaintext.append(char)
+    return ''.join(plaintext)
+
+def calculate_letter_frequencies(text):
+    # Calculate letter frequencies in the text
+    letter_counts = {char: 0 for char in string.ascii_uppercase}
+    total_letters = 0
+    
+    for char in text:
+        if char in string.ascii_uppercase:
+            letter_counts[char] += 1
+            total_letters += 1
+    
+    # Calculate frequencies
+    letter_frequencies = {}
+    for char, count in letter_counts.items():
+        if count > 0:
+            frequency = (count / total_letters) * 100
+            letter_frequencies[char] = frequency
+    
+    return letter_frequencies
+
+def likelihood_score(plaintext):
+    # Calculate likelihood score of plaintext based on letter frequencies
+    score = 0
+    for char in plaintext:
+        if char in english_letter_frequencies:
+            score += english_letter_frequencies[char]
+    return score
+
+def letter_frequency_attack(ciphertext, top_k=10):
+    # Calculate letter frequencies in ciphertext
+    letter_frequencies = calculate_letter_frequencies(ciphertext)
+    
+    # Sort frequencies in descending order
+    sorted_frequencies = sorted(letter_frequencies.items(), key=operator.itemgetter(1), reverse=True)
+    
+    # Generate possible plaintexts using top-k most frequent letters as potential shifts
+    possible_plaintexts = []
+    
+    for i in range(min(top_k, len(sorted_frequencies))):
+        # Assume the i-th most frequent letter in ciphertext corresponds to 'E' in plaintext
+        shift = (ord(sorted_frequencies[i][0]) - ord('E')) % 26
+        plaintext = decrypt_with_shift(ciphertext, shift)
+        score = likelihood_score(plaintext)
+        possible_plaintexts.append((plaintext, score))
+    
+    # Sort possible plaintexts by likelihood score (higher score means more likely)
+    sorted_plaintexts = sorted(possible_plaintexts, key=lambda x: x[1], reverse=True)
+    
+    # Return top-k possible plaintexts
+    return sorted_plaintexts[:top_k]
+
+def main():
+    # Example usage:
+    filename = 'ciphertext.txt'  # Replace with your ciphertext file
+    ciphertext = load_ciphertext(filename)
+    
+    # Perform letter frequency attack
+    top_k = 10
+    possible_plaintexts = letter_frequency_attack(ciphertext, top_k)
+    
+    # Print top-k possible plaintexts
+    print(f"Top {top_k} possible plaintexts:")
+    for i, (plaintext, score) in enumerate(possible_plaintexts, start=1):
+        print(f"\nPlaintext #{i} (Likelihood Score: {score:.2f}):")
+        print(plaintext)
+
+if __name__ == "__main__":
+    main()
