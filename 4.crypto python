@@ -1,0 +1,51 @@
+import string
+
+# Function to generate Vigenère table
+def generate_vigenere_table():
+    table = {}
+    for i, char in enumerate(string.ascii_uppercase):
+        table[char] = {}
+        for j, shift in enumerate(range(26)):
+            table[char][string.ascii_uppercase[(i + shift) % 26]] = string.ascii_uppercase[(i + shift) % 26]
+    return table
+
+# Function to preprocess the plaintext and key
+def preprocess_input(plaintext, key):
+    # Remove spaces and convert to uppercase
+    plaintext = plaintext.replace(" ", "").upper()
+    key = key.upper()
+    # Remove non-alphabetic characters from the key
+    key = ''.join(filter(str.isalpha, key))
+    return plaintext, key
+
+# Function to encrypt plaintext using Vigenère cipher
+def vigenere_encrypt(plaintext, key):
+    table = generate_vigenere_table()
+    ciphertext = []
+    key_length = len(key)
+    key_index = 0
+    
+    for char in plaintext:
+        if char in string.ascii_uppercase:
+            # Get corresponding substitution using current key character
+            encrypted_char = table[key[key_index]][char]
+            ciphertext.append(encrypted_char)
+            key_index = (key_index + 1) % key_length
+        else:
+            # Non-alphabetic characters remain unchanged
+            ciphertext.append(char)
+    
+    return ''.join(ciphertext)
+
+# Main function to test the Vigenère cipher encryption
+def main():
+    plaintext = input("Enter plaintext: ")
+    key = input("Enter key (letters only): ")
+    
+    plaintext, key = preprocess_input(plaintext, key)
+    encrypted_text = vigenere_encrypt(plaintext, key)
+    
+    print("Encrypted text:", encrypted_text)
+
+if __name__ == "__main__":
+    main()
