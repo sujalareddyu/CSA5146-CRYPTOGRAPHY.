@@ -1,0 +1,94 @@
+import numpy as np
+
+# Function to convert text to numeric form (A=0, B=1, ..., Z=25)
+def text_to_numeric(text):
+    return [ord(char.upper()) - ord('A') for char in text if char.isalpha()]
+
+# Function to convert numeric values back to text
+def numeric_to_text(numeric):
+    return ''.join(chr(i + ord('A')) for i in numeric)
+
+# Function to find modular inverse of a matrix modulo m
+def matrix_mod_inv(matrix, m):
+    det = int(np.round(np.linalg.det(matrix))) % m
+    det_inv = pow(det, -1, m)
+    adj = np.round(det * np.linalg.inv(matrix)).astype(int) % m
+    return (det_inv * adj) % m
+
+# Function to perform known plaintext attack on Hill cipher
+def hill_known_plaintext_attack(plaintexts, ciphertexts):
+    num_blocks = len(plaintexts[0]) // 2
+    A = np.zeros((2 * len(plaintexts), 4), dtype=int)
+    B = np.zeros((2 * len(plaintexts), 1), dtype=int)
+
+    for i in range(len(plaintexts)):
+        pt_numeric = text_to_numeric(plaintexts[i])
+        ct_numeric = text_to_numeric(ciphertexts[i])
+
+        A[2 * i] = [pt_numeric[0], pt_numeric[1], 0, 0]
+        B[2 * i] = ct_numeric[0]
+        A[2 * i + 1] = [0, 0, pt_numeric[0], pt_numeric[1]]
+        B[2 * i + 1] = ct_numeric[1]
+
+    A = A % 26
+    B = B % 26
+
+    key_matrix_flat = np.dot(np.linalg.inv(A), B) % 26
+    key_matrix = key_matrix_flat.reshape((2, 2))
+
+    return key_matrix
+
+# Function to decrypt ciphertext using the deduced key matrix
+def hill_decrypt(ciphertext, key_matrix):
+    num_blocks = len(ciphertext) // 2
+    numeric_ciphertext = text_to_numeric(ciphertext)
+    matrix_ciphertext = np.array(numeric_ciphertext).reshape(num_blocks, 2)
+
+    key_matrix_inv = matrix_mod_inv(key_matrix, 26)
+    decrypted_blocks = []
+
+    for block in matrix_ciphertext:
+        decrypted_block = np.dot(key_matrix_inv, block) % 26
+        decrypted_blocks.append(decrypted_block)
+
+    decrypted_numeric = [item for sublist in decrypted_blocks for item in sublist]
+    decrypted_text = numeric_to_text(decrypted_numeric)
+
+    return decrypted_text
+
+# Example usage
+if __name__ == "__main__":
+    # Example plaintext-ciphertext pairs
+    plaintexts = [
+        "MEET",
+        "ATTHE",
+        "USUAL",
+        "PLACE",
+        "ATTEN",
+        "RATHER",
+        "THANE",
+        "EIGHT",
+        "OCLOC"
+    ]
+    ciphertexts = [
+        "ZKYU",
+        "HQJY",
+        "PJHD",
+        "CZJY",
+        "HTIW",
+        "LNYI",
+        "OISF",
+        "TBVG",
+        "FPNP"
+    ]
+
+    # Perform known plaintext attack
+    key_matrix = hill_known_plaintext_attack(plaintexts, ciphertexts)
+    print("Deduced key matrix:")
+    print(key_matrix)
+
+    # Decrypt ciphertext using deduced key matrix
+    ciphertext = "ZKYUHQJYPJHDCZJYHTIWLNYIOISFTBVGFPNP"
+    decrypted_message = hill_decrypt(ciphertext, key_matrix)
+    print("\nDecrypted plaintext:")
+    print(decrypted_message)
