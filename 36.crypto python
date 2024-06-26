@@ -1,0 +1,66 @@
+import string
+
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+def multiplicative_inverse(a, m):
+    m0, x0, x1 = m, 0, 1
+    if m == 1:
+        return 0
+    while a > 1:
+        q = a // m
+        m, a = a % m, m
+        x0, x1 = x1 - q * x0, x0
+    if x1 < 0:
+        x1 += m0
+    return x1
+
+def validate_a(a):
+    # Validate that 'a' has a multiplicative inverse mod 26
+    if gcd(a, 26) != 1:
+        raise ValueError("The value of 'a' must be coprime with 26 (gcd(a, 26) should be 1)")
+
+def affine_caesar_encrypt(a, b, plaintext):
+    validate_a(a)
+    ciphertext = []
+    for char in plaintext:
+        if char.isalpha():
+            p = ord(char.upper()) - ord('A')
+            C = (a * p + b) % 26
+            ciphertext.append(chr(C + ord('A')))
+        else:
+            ciphertext.append(char)
+    return ''.join(ciphertext)
+
+def affine_caesar_decrypt(a, b, ciphertext):
+    validate_a(a)
+    a_inv = multiplicative_inverse(a, 26)
+    plaintext = []
+    for char in ciphertext:
+        if char.isalpha():
+            C = ord(char.upper()) - ord('A')
+            p = (a_inv * (C - b)) % 26
+            plaintext.append(chr(p + ord('A')))
+        else:
+            plaintext.append(char)
+    return ''.join(plaintext)
+
+def main():
+    # Example values of a and b
+    a = 3
+    b = 7
+    
+    plaintext = "Hello, Affine Caesar Cipher!"
+    
+    # Encrypt the plaintext
+    encrypted_text = affine_caesar_encrypt(a, b, plaintext)
+    print(f"Encrypted ciphertext: {encrypted_text}")
+    
+    # Decrypt the ciphertext
+    decrypted_text = affine_caesar_decrypt(a, b, encrypted_text)
+    print(f"Decrypted plaintext: {decrypted_text}")
+
+if __name__ == "__main__":
+    main()
