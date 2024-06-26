@@ -1,0 +1,70 @@
+import string
+from collections import Counter
+
+# English letter frequencies
+ENGLISH_FREQ = "etaoinshrdlcumwfgypbvkjxqz"
+
+def get_letter_frequency(text):
+    """Get the frequency of each letter in the text."""
+    text = text.lower()
+    filtered_text = filter(lambda x: x in string.ascii_lowercase, text)
+    return Counter(filtered_text)
+
+def decrypt_with_mapping(ciphertext, mapping):
+    """Decrypt the ciphertext using the given letter mapping."""
+    decrypted = []
+    for char in ciphertext:
+        if char.lower() in mapping:
+            decrypted_char = mapping[char.lower()]
+            if char.isupper():
+                decrypted_char = decrypted_char.upper()
+            decrypted.append(decrypted_char)
+        else:
+            decrypted.append(char)
+    return ''.join(decrypted)
+
+def generate_mappings(ciphertext_freq, english_freq=ENGLISH_FREQ):
+    """Generate possible mappings from ciphertext letter frequency to English letter frequency."""
+    # Sort ciphertext letters by frequency
+    sorted_ciphertext_freq = [item[0] for item in ciphertext_freq.most_common()]
+    
+    # Generate all possible mappings
+    mappings = []
+    for i in range(len(english_freq)):
+        mapping = {}
+        for j in range(len(sorted_ciphertext_freq)):
+            if j + i < len(english_freq):
+                mapping[sorted_ciphertext_freq[j]] = english_freq[j + i]
+            else:
+                mapping[sorted_ciphertext_freq[j]] = english_freq[(j + i) % len(english_freq)]
+        mappings.append(mapping)
+    return mappings
+
+def letter_frequency_attack(ciphertext, top_n=10):
+    """Perform a letter frequency attack and return the top N possible plaintexts."""
+    # Get the letter frequency of the ciphertext
+    ciphertext_freq = get_letter_frequency(ciphertext)
+    
+    # Generate possible mappings
+    mappings = generate_mappings(ciphertext_freq)
+    
+    # Decrypt the ciphertext with each mapping and rank the results
+    decrypted_texts = []
+    for mapping in mappings:
+        decrypted_text = decrypt_with_mapping(ciphertext, mapping)
+        decrypted_texts.append(decrypted_text)
+    
+    # Sort decrypted texts by the sum of letter frequencies of common English words
+    decrypted_texts.sort(key=lambda text: sum([ciphertext_freq.get(char, 0) for char in text.lower()]), reverse=True)
+    
+    return decrypted_texts[:top_n]
+
+if __name__ == "__main__":
+    ciphertext = input("Enter the ciphertext: ")
+    top_n = int(input("Enter the number of top possible plaintexts to display: "))
+    
+    possible_plaintexts = letter_frequency_attack(ciphertext, top_n)
+    
+    print("\nTop possible plaintexts:")
+    for i, plaintext in enumerate(possible_plaintexts, start=1):
+        print(f"{i}. {plaintext}")
