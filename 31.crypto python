@@ -1,0 +1,49 @@
+from Crypto.Cipher import AES
+import struct
+
+def generate_subkeys(key, block_size):
+    # Step 1: Initialize AES cipher with provided key
+    cipher = AES.new(key, AES.MODE_ECB)
+    
+    # Step 2: Generate L subkey
+    L = cipher.encrypt(bytes(block_size))  # Encrypt a block of all zeros
+    
+    # Step 3: Conditionally left shift L
+    L_bytes = bytearray(L)
+    if L_bytes[0] & 0x80:  # Check if the MSB is 1
+        L = bytes([(L_bytes[i] << 1 ^ 0x1B) & 0xFF for i in range(block_size)])
+    else:
+        L = bytes([L_bytes[i] << 1 & 0xFF for i in range(block_size)])
+    
+    # Step 4: Generate K1 and K2 subkeys
+    if block_size == 8:  # 64-bit block size
+        K1 = L
+        if L_bytes[0] & 0x80:  # Check MSB of L
+            K2 = bytes([(K1[i] << 1 ^ 0x1B) & 0xFF for i in range(block_size)])
+        else:
+            K2 = bytes([K1[i] << 1 & 0xFF for i in range(block_size)])
+    elif block_size == 16:  # 128-bit block size
+        K1 = L
+        if L_bytes[0] & 0x80:  # Check MSB of L
+            K2 = bytes([(K1[i] << 1 ^ 0x87) & 0xFF for i in range(block_size)])
+        else:
+            K2 = bytes([K1[i] << 1 & 0xFF for i in range(block_size)])
+    else:
+        raise ValueError("Unsupported block size. Supported sizes are 8 (64-bit) and 16 (128-bit).")
+    
+    return K1, K2
+
+def main():
+    # Example key and block size
+    key = b'Sixteen byte key'  # Example key, should be 16 bytes for 128-bit block size
+    block_size = len(key) // 2  # Assuming block size derived from key length
+    
+    # Generate subkeys
+    K1, K2 = generate_subkeys(key, block_size)
+    
+    # Print subkeys in hex format
+    print(f"K1: {K1.hex()}")
+    print(f"K2: {K2.hex()}")
+
+if __name__ == "__main__":
+    main()
