@@ -1,0 +1,99 @@
+import string
+
+# Function to generate the Playfair cipher matrix
+def generate_playfair_matrix(key):
+    # Create a set of unique characters from the key (ignoring 'j'/'J')
+    key = key.replace('j', 'i').replace('J', 'I')  # Replace 'j'/'J' with 'i'/'I'
+    key_set = []
+    for char in key:
+        if char not in key_set and char in string.ascii_lowercase:
+            key_set.append(char)
+    
+    # Fill the rest of the matrix with remaining letters of the alphabet
+    alphabet = string.ascii_lowercase.replace('j', '')  # Remove 'j'/'J' from alphabet
+    for char in alphabet:
+        if char not in key_set:
+            key_set.append(char)
+    
+    # Create the 5x5 matrix
+    matrix = []
+    for i in range(5):
+        row = key_set[i*5:(i+1)*5]
+        matrix.append(row)
+    
+    return matrix
+
+# Function to preprocess the plaintext
+def preprocess_plaintext(plaintext):
+    # Remove spaces and non-alphabetic characters, and convert to lowercase
+    processed_text = []
+    for char in plaintext.lower():
+        if char in string.ascii_lowercase.replace('j', ''):
+            processed_text.append(char.replace('j', 'i'))
+    
+    # Split into pairs of letters and handle double letters
+    i = 0
+    while i < len(processed_text) - 1:
+        if processed_text[i] == processed_text[i + 1]:
+            processed_text.insert(i + 1, 'x')
+        i += 2
+    
+    if len(processed_text) % 2 != 0:
+        processed_text.append('x')
+    
+    return processed_text
+
+# Function to find the positions of two characters in the Playfair matrix
+def find_positions(matrix, char1, char2):
+    row1, col1 = None, None
+    row2, col2 = None, None
+    for i in range(5):
+        for j in range(5):
+            if matrix[i][j] == char1:
+                row1, col1 = i, j
+            elif matrix[i][j] == char2:
+                row2, col2 = i, j
+            if row1 is not None and row2 is not None:
+                return row1, col1, row2, col2
+
+# Function to encrypt plaintext using Playfair cipher
+def playfair_encrypt(plaintext, key):
+    matrix = generate_playfair_matrix(key)
+    processed_text = preprocess_plaintext(plaintext)
+    encrypted_text = []
+    
+    i = 0
+    while i < len(processed_text):
+        char1 = processed_text[i]
+        char2 = processed_text[i + 1]
+        row1, col1, row2, col2 = find_positions(matrix, char1, char2)
+        
+        # Same row, shift columns to right with wrap-around
+        if row1 == row2:
+            encrypted_char1 = matrix[row1][(col1 + 1) % 5]
+            encrypted_char2 = matrix[row2][(col2 + 1) % 5]
+        # Same column, shift rows down with wrap-around
+        elif col1 == col2:
+            encrypted_char1 = matrix[(row1 + 1) % 5][col1]
+            encrypted_char2 = matrix[(row2 + 1) % 5][col2]
+        # Form a rectangle, swap corners
+        else:
+            encrypted_char1 = matrix[row1][col2]
+            encrypted_char2 = matrix[row2][col1]
+        
+        encrypted_text.append(encrypted_char1)
+        encrypted_text.append(encrypted_char2)
+        i += 2
+    
+    return ''.join(encrypted_text)
+
+# Main function to test the Playfair cipher encryption
+def main():
+    plaintext = input("Enter plaintext: ").replace(" ", "")
+    key = input("Enter keyword (letters only): ").lower()
+    
+    encrypted_text = playfair_encrypt(plaintext, key)
+    print("Encrypted text:", encrypted_text.upper())
+
+if __name__ == "__main__":
+    main()
