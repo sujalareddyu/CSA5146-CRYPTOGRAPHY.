@@ -1,0 +1,39 @@
+import math
+
+# Example values
+n = 3233  # Replace with your specific value of n (product of two primes)
+e = 17    # Replace with your specific value of e (public exponent)
+M = 77    # Replace with the plaintext block known to share a common factor with n
+
+# Function to find gcd
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+# Find the gcd of M and n
+d_prime = gcd(M, n)
+
+# Factor n
+p = d_prime
+q = n // p
+
+# Calculate (p-1)(q-1)
+phi_n = (p - 1) * (q - 1)
+
+# Function to find modular inverse using extended Euclidean algorithm
+def extended_gcd(a, b):
+    if b == 0:
+        return a, 1, 0
+    gcd, x1, y1 = extended_gcd(b, a % b)
+    x = y1
+    y = x1 - (a // b) * y1
+    return gcd, x, y
+
+# Find modular inverse of e mod phi_n
+gcd, x, y = extended_gcd(e, phi_n)
+if gcd != 1:
+    raise ValueError("The inverse of e modulo phi(n) does not exist.")
+else:
+    d = x % phi_n
+    print("Private key d:", d)
