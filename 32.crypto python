@@ -1,0 +1,40 @@
+from cryptography.hazmat.primitives.asymmetric import dsa
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
+
+def dsa_sign(message, private_key):
+    # Generate a DSA signature for the given message using the private key
+    signature = private_key.sign(message.encode('utf-8'))
+    return signature
+
+def dsa_verify(message, signature, public_key):
+    # Verify the DSA signature for the given message using the public key
+    try:
+        public_key.verify(signature, message.encode('utf-8'))
+        return True
+    except InvalidSignature:
+        return False
+
+def main():
+    # Generate DSA private and public key pair
+    private_key = dsa.generate_private_key(
+        key_size=1024,
+        backend=default_backend()
+    )
+    public_key = private_key.public_key()
+    
+    # Example message
+    message = "Hello, world!"
+    
+    # Sign the message
+    signature = dsa_sign(message, private_key)
+    print(f"DSA Signature: {signature.hex()}")
+    
+    # Verify the signature
+    if dsa_verify(message, signature, public_key):
+        print("Signature verification successful.")
+    else:
+        print("Signature verification failed.")
+
+if __name__ == "__main__":
+    main()
