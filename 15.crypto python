@@ -1,0 +1,68 @@
+import string
+from collections import Counter
+
+# English letter frequencies (source: https://en.wikipedia.org/wiki/Letter_frequency)
+english_letter_freq = {
+    'E': 12.02, 'T': 9.10, 'A': 8.12, 'O': 7.68, 'I': 7.31,
+    'N': 6.95, 'S': 6.28, 'R': 6.02, 'H': 5.92, 'D': 4.32,
+    'L': 3.98, 'U': 2.88, 'C': 2.71, 'M': 2.61, 'F': 2.30,
+    'Y': 2.11, 'W': 2.09, 'G': 2.03, 'P': 1.82, 'B': 1.49,
+    'V': 1.11, 'K': 0.69, 'X': 0.17, 'Q': 0.11, 'J': 0.10,
+    'Z': 0.07
+}
+
+# Function to decrypt text with a given shift (additive cipher)
+def decrypt(text, shift):
+    decrypted_text = ""
+    for char in text:
+        if char.isalpha():
+            decrypted_char = chr((ord(char.upper()) - ord('A') - shift) % 26 + ord('A'))
+            decrypted_text += decrypted_char
+        else:
+            decrypted_text += char
+    return decrypted_text
+
+# Function to calculate letter frequencies in text
+def calculate_letter_frequency(text):
+    text = text.upper()
+    letter_count = Counter(char for char in text if char.isalpha())
+    total_letters = sum(letter_count.values())
+    frequencies = {char: count / total_letters * 100 for char, count in letter_count.items()}
+    return frequencies
+
+# Function to perform letter frequency attack on additive cipher
+def letter_frequency_attack(ciphertext, top_n=10):
+    # Calculate letter frequencies in ciphertext
+    ciphertext_freq = calculate_letter_frequency(ciphertext)
+
+    # Initialize list to store decrypted plaintexts and their chi-squared values
+    decrypted_texts = []
+
+    # Try all 26 possible shifts
+    for shift in range(26):
+        decrypted_text = decrypt(ciphertext, shift)
+        decrypted_freq = calculate_letter_frequency(decrypted_text)
+
+        # Calculate chi-squared value to measure deviation from English letter frequencies
+        chi_squared = sum(((decrypted_freq.get(char, 0) - english_letter_freq.get(char, 0)) ** 2) / english_letter_freq.get(char, 1) for char in string.ascii_uppercase)
+
+        decrypted_texts.append((decrypted_text, chi_squared))
+
+    # Sort decrypted texts by chi-squared values (lower is better)
+    decrypted_texts.sort(key=lambda x: x[1])
+
+    # Return top N decrypted plaintexts
+    return [text for text, chi_squared in decrypted_texts[:top_n]]
+
+# Example usage
+if __name__ == "__main__":
+    # Example ciphertext
+    ciphertext = "KHOOR ZRUOG"
+
+    # Perform letter frequency attack
+    possible_plaintexts = letter_frequency_attack(ciphertext, top_n=10)
+
+    # Print top possible plaintexts
+    print(f"Top possible plaintexts for ciphertext '{ciphertext}':")
+    for i, plaintext in enumerate(possible_plaintexts, 1):
+        print(f"{i}. {plaintext}")
