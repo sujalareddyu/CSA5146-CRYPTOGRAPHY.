@@ -1,0 +1,100 @@
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
+
+# Define the block size (AES block size is 16 bytes)
+BLOCK_SIZE = AES.block_size
+
+# Padding function
+def custom_pad(plaintext, block_size):
+    padding_len = block_size - len(plaintext) % block_size
+    padding = b'\x80' + b'\x00' * (padding_len - 1)
+    return plaintext + padding
+
+# Unpadding function
+def custom_unpad(plaintext, block_size):
+    if plaintext[-1] != 0:
+        return plaintext
+    unpadding_len = 0
+    for i in range(1, block_size + 1):
+        if plaintext[-i] == 0:
+            unpadding_len += 1
+        elif plaintext[-i] == 128:
+            unpadding_len += 1
+            break
+    return plaintext[:-unpadding_len]
+
+# Encryption function for ECB mode
+def encrypt_ecb(plaintext, key):
+    cipher = AES.new(key, AES.MODE_ECB)
+    padded_plaintext = custom_pad(plaintext, BLOCK_SIZE)
+    ciphertext = cipher.encrypt(padded_plaintext)
+    return ciphertext
+
+# Decryption function for ECB mode
+def decrypt_ecb(ciphertext, key):
+    cipher = AES.new(key, AES.MODE_ECB)
+    decrypted_plaintext = cipher.decrypt(ciphertext)
+    unpadded_plaintext = custom_unpad(decrypted_plaintext, BLOCK_SIZE)
+    return unpadded_plaintext
+
+# Encryption function for CBC mode
+def encrypt_cbc(plaintext, key):
+    iv = get_random_bytes(BLOCK_SIZE)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    padded_plaintext = custom_pad(plaintext, BLOCK_SIZE)
+    ciphertext = iv + cipher.encrypt(padded_plaintext)
+    return ciphertext
+
+# Decryption function for CBC mode
+def decrypt_cbc(ciphertext, key):
+    iv = ciphertext[:BLOCK_SIZE]
+    actual_ciphertext = ciphertext[BLOCK_SIZE:]
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    decrypted_plaintext = cipher.decrypt(actual_ciphertext)
+    unpadded_plaintext = custom_unpad(decrypted_plaintext, BLOCK_SIZE)
+    return unpadded_plaintext
+
+# Encryption function for CFB mode
+def encrypt_cfb(plaintext, key):
+    iv = get_random_bytes(BLOCK_SIZE)
+    cipher = AES.new(key, AES.MODE_CFB, iv)
+    ciphertext = iv + cipher.encrypt(plaintext)
+    return ciphertext
+
+# Decryption function for CFB mode
+def decrypt_cfb(ciphertext, key):
+    iv = ciphertext[:BLOCK_SIZE]
+    actual_ciphertext = ciphertext[BLOCK_SIZE:]
+    cipher = AES.new(key, AES.MODE_CFB, iv)
+    plaintext = cipher.decrypt(actual_ciphertext)
+    return plaintext
+
+# Test the encryption and decryption
+def test_encryption_decryption():
+    plaintext = b"Hello, this is a test message for AES modes!"
+    key = get_random_bytes(16)  # AES-128 key
+
+    # Test ECB mode
+    encrypted_ecb = encrypt_ecb(plaintext, key)
+    decrypted_ecb = decrypt_ecb(encrypted_ecb, key)
+    print("ECB Mode:")
+    print("Encrypted:", encrypted_ecb)
+    print("Decrypted:", decrypted_ecb)
+
+    # Test CBC mode
+    encrypted_cbc = encrypt_cbc(plaintext, key)
+    decrypted_cbc = decrypt_cbc(encrypted_cbc, key)
+    print("\nCBC Mode:")
+    print("Encrypted:", encrypted_cbc)
+    print("Decrypted:", decrypted_cbc)
+
+    # Test CFB mode
+    encrypted_cfb = encrypt_cfb(plaintext, key)
+    decrypted_cfb = decrypt_cfb(encrypted_cfb, key)
+    print("\nCFB Mode:")
+    print("Encrypted:", encrypted_cfb)
+    print("Decrypted:", decrypted_cfb)
+
+# Run the test
+test_encryption_decryption()
