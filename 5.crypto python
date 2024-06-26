@@ -1,0 +1,81 @@
+import math
+
+# Function to check if two numbers are coprime
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+# Function to find modular inverse of a modulo m
+def mod_inverse(a, m):
+    m0, x0, x1 = m, 0, 1
+    if m == 1:
+        return 0
+    while a > 1:
+        q = a // m
+        m, a = a % m, m
+        x0, x1 = x1 - q * x0, x0
+    if x1 < 0:
+        x1 += m0
+    return x1
+
+# Function to encrypt plaintext using affine Caesar cipher
+def affine_caesar_encrypt(plaintext, a, b):
+    ciphertext = []
+    for char in plaintext:
+        if char.isalpha():
+            if char.islower():
+                p = ord(char) - ord('a')
+                c = (a * p + b) % 26
+                ciphertext.append(chr(c + ord('a')))
+            elif char.isupper():
+                p = ord(char) - ord('A')
+                c = (a * p + b) % 26
+                ciphertext.append(chr(c + ord('A')))
+        else:
+            ciphertext.append(char)
+    return ''.join(ciphertext)
+
+# Function to decrypt ciphertext using affine Caesar cipher
+def affine_caesar_decrypt(ciphertext, a, b):
+    plaintext = []
+    a_inv = mod_inverse(a, 26)
+    for char in ciphertext:
+        if char.isalpha():
+            if char.islower():
+                c = ord(char) - ord('a')
+                p = (a_inv * (c - b)) % 26
+                plaintext.append(chr(p + ord('a')))
+            elif char.isupper():
+                c = ord(char) - ord('A')
+                p = (a_inv * (c - b)) % 26
+                plaintext.append(chr(p + ord('A')))
+        else:
+            plaintext.append(char)
+    return ''.join(plaintext)
+
+# Main function to test the affine Caesar cipher
+def main():
+    plaintext = "HelloWorld"
+    a = 3
+    b = 7
+    
+    # Check if a and b are coprime with 26
+    if gcd(a, 26) != 1:
+        print(f"Value of a={a} is not allowed as it is not coprime with 26.")
+        return
+    
+    if gcd(b, 26) != 1:
+        print(f"Value of b={b} is not allowed as it is not coprime with 26.")
+        return
+    
+    # Encrypt plaintext
+    encrypted_text = affine_caesar_encrypt(plaintext, a, b)
+    print("Encrypted text:", encrypted_text)
+    
+    # Decrypt ciphertext
+    decrypted_text = affine_caesar_decrypt(encrypted_text, a, b)
+    print("Decrypted text:", decrypted_text)
+
+if __name__ == "__main__":
+    main()
