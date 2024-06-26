@@ -1,0 +1,40 @@
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+import hashlib
+
+def aes_cbc_mac(key, message):
+    cipher = AES.new(key, AES.MODE_CBC, iv=b'\x00' * 16)
+    ciphertext = cipher.encrypt(pad(message, AES.block_size))
+    mac = ciphertext[-AES.block_size:]  # Take the last block as the MAC
+    return mac
+
+def xor_bytes(b1, b2):
+    return bytes(x ^ y for x, y in zip(b1, b2))
+
+def main():
+    # Example key and message
+    key = b'Sixteen byte key'
+    X = b'Hello, world!'
+    
+    # Calculate CBC-MAC for X
+    T = aes_cbc_mac(key, X)
+    
+    # Create X || (X XOR T)
+    X_XOR_T = xor_bytes(X, T)
+    X_XOR_T_message = X + X_XOR_T
+    
+    # Calculate CBC-MAC for X || (X XOR T)
+    T_X_XOR_T = aes_cbc_mac(key, X_XOR_T_message)
+    
+    # Output results
+    print(f"Original MAC T: {T.hex()}")
+    print(f"MAC for X || (X XOR T): {T_X_XOR_T.hex()}")
+    
+    # Demonstrate the vulnerability
+    if T == T_X_XOR_T:
+        print("Vulnerability demonstrated: MAC matches!")
+    else:
+        print("No vulnerability detected.")
+
+if __name__ == "__main__":
+    main()
