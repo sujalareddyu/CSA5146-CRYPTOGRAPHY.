@@ -1,0 +1,36 @@
+import random
+
+def mod_exp(base, exp, mod):
+    result = 1
+    while exp > 0:
+        if exp % 2 == 1:
+            result = (result * base) % mod
+        base = (base * base) % mod
+        exp //= 2
+    return result
+
+# Parameters
+q = 353  # Example large prime modulus
+a = 3    # Example base number
+
+# Alice chooses secret x
+x = random.randint(1, q - 1)
+
+# Bob chooses secret y
+y = random.randint(1, q - 1)
+
+# Alice computes A = x^a mod q and sends it to Bob
+A = mod_exp(x, a, q)
+
+# Bob computes B = y^a mod q and sends it to Alice
+B = mod_exp(y, a, q)
+
+# Both compute the shared secret key
+K_Alice = mod_exp(B, x, q)
+K_Bob = mod_exp(A, y, q)
+
+# Both should arrive at the same shared secret key
+assert K_Alice == K_Bob
+
+print(f"Alice's shared key: {K_Alice}")
+print(f"Bob's shared key: {K_Bob}")
