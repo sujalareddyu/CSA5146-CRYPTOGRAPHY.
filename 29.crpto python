@@ -1,0 +1,55 @@
+import random
+
+# Constants for SHA-3 with a block size of 1024 bits
+STATE_SIZE = 1600  # Size of state matrix
+CAPACITY_SIZE = 576  # Number of bits in the capacity portion
+RATE_SIZE = 1024 - CAPACITY_SIZE  # Number of bits in the rate portion
+
+def initialize_state():
+    """
+    Initialize the state matrix where the capacity part is all zeros.
+    """
+    state = [[0] * STATE_SIZE for _ in range(5)]
+    return state
+
+def count_nonzero_capacity_lanes(state):
+    """
+    Count the number of lanes in the capacity portion of the state matrix
+    that have at least one nonzero bit.
+    """
+    nonzero_count = 0
+    for i in range(5):
+        for j in range(5):
+            if j < 5 and (i * 5 + j) < CAPACITY_SIZE // 64:
+                # Check if any 64-bit lane in the capacity portion has a nonzero value
+                if state[i][j] != 0:
+                    nonzero_count += 1
+    return nonzero_count
+
+def simulate_sha3():
+    """
+    Simulate the SHA-3 process until all lanes in the capacity part have at least one nonzero bit.
+    """
+    state = initialize_state()
+    rounds = 0
+    while True:
+        rounds += 1
+        
+        # Simulate some processing (random update for simplicity)
+        for i in range(5):
+            for j in range(5):
+                state[i][j] = random.randint(0, 2**64 - 1)  # Random 64-bit value
+        
+        # Count nonzero lanes in the capacity part
+        nonzero_count = count_nonzero_capacity_lanes(state)
+        
+        # Check if all lanes in the capacity part have at least one nonzero bit
+        if nonzero_count == CAPACITY_SIZE // 64:
+            break
+    
+    return rounds
+
+# Run the simulation
+rounds_needed = simulate_sha3()
+
+print(f"Rounds needed: {rounds_needed}")
