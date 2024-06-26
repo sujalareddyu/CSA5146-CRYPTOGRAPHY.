@@ -1,0 +1,45 @@
+import random
+
+def generate_random_key(length):
+    # Generate a random key stream of specified length
+    return [random.randint(0, 25) for _ in range(length)]
+
+def vigenere_encrypt(plaintext, key):
+    ciphertext = []
+    key_length = len(key)
+    
+    for i, char in enumerate(plaintext):
+        shift = key[i % key_length]  # Use modulo to repeat key if shorter than plaintext
+        encrypted_char = chr(((ord(char) - ord('A') + shift) % 26) + ord('A'))
+        ciphertext.append(encrypted_char)
+    
+    return ''.join(ciphertext)
+
+def vigenere_decrypt(ciphertext, key):
+    plaintext = []
+    key_length = len(key)
+    
+    for i, char in enumerate(ciphertext):
+        shift = key[i % key_length]
+        decrypted_char = chr(((ord(char) - ord('A') - shift) % 26) + ord('A'))
+        plaintext.append(decrypted_char)
+    
+    return ''.join(plaintext)
+
+def main():
+    plaintext = "HELLO"
+    
+    # Generate a random key
+    key = generate_random_key(len(plaintext))
+    print(f"Generated key: {key}")
+    
+    # Encrypt the plaintext
+    encrypted_text = vigenere_encrypt(plaintext, key)
+    print(f"Encrypted ciphertext: {encrypted_text}")
+    
+    # Decrypt the ciphertext
+    decrypted_text = vigenere_decrypt(encrypted_text, key)
+    print(f"Decrypted plaintext: {decrypted_text}")
+
+if __name__ == "__main__":
+    main()
