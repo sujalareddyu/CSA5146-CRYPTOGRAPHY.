@@ -1,0 +1,29 @@
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+
+# Function to perform AES encryption in ECB mode
+def encrypt_aes_ecb(plaintext, key):
+    # Create the cipher object
+    cipher = AES.new(key, AES.MODE_ECB)
+    ciphertext = cipher.encrypt(pad(plaintext, AES.block_size))
+    return ciphertext
+
+# Function to perform AES decryption in ECB mode
+def decrypt_aes_ecb(ciphertext, key):
+    # Create the cipher object
+    cipher = AES.new(key, AES.MODE_ECB)
+    plaintext = unpad(cipher.decrypt(ciphertext), AES.block_size)
+    return plaintext
+
+# Test the encryption and decryption
+plaintext = b"Hello, this is a test message for AES in ECB mode! This message will be divided into blocks."
+key = b'Sixteen byte key'  # AES-128 key
+
+# Encrypt the plaintext
+encrypted = encrypt_aes_ecb(plaintext, key)
+print("Encrypted:", encrypted)
+
+# Decrypt the ciphertext
+decrypted = decrypt_aes_ecb(encrypted, key)
+print("Decrypted:", decrypted)
