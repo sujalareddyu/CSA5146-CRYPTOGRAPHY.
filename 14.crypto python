@@ -1,0 +1,55 @@
+import random
+
+# Function to convert text to numeric form (A=0, B=1, ..., Z=25)
+def text_to_numeric(text):
+    return [ord(char.upper()) - ord('A') for char in text if char.isalpha()]
+
+# Function to convert numeric values back to text
+def numeric_to_text(numeric):
+    return ''.join(chr(i + ord('A')) for i in numeric)
+
+# Function to generate a random key stream
+def generate_key_stream(length):
+    return [random.randint(0, 25) for _ in range(length)]
+
+# Function to encrypt plaintext using one-time pad Vigenère cipher
+def vigenere_one_time_pad_encrypt(plaintext, key_stream):
+    numeric_plain = text_to_numeric(plaintext)
+    ciphertext = []
+    
+    for i, char_num in enumerate(numeric_plain):
+        shift = key_stream[i % len(key_stream)]
+        encrypted_char_num = (char_num + shift) % 26
+        ciphertext.append(encrypted_char_num)
+    
+    encrypted_text = numeric_to_text(ciphertext)
+    return encrypted_text
+
+# Function to decrypt ciphertext using one-time pad Vigenère cipher
+def vigenere_one_time_pad_decrypt(ciphertext, key_stream):
+    numeric_cipher = text_to_numeric(ciphertext)
+    plaintext = []
+    
+    for i, char_num in enumerate(numeric_cipher):
+        shift = key_stream[i % len(key_stream)]
+        decrypted_char_num = (char_num - shift) % 26
+        plaintext.append(decrypted_char_num)
+    
+    decrypted_text = numeric_to_text(plaintext)
+    return decrypted_text
+
+# Example usage
+if __name__ == "__main__":
+    # Example plaintext
+    plaintext = "HELLO"
+
+    # Generate a random key stream
+    key_stream = generate_key_stream(len(plaintext))
+
+    # Encrypt the plaintext
+    encrypted_text = vigenere_one_time_pad_encrypt(plaintext, key_stream)
+    print("Encrypted ciphertext:", encrypted_text)
+
+    # Decrypt the ciphertext
+    decrypted_text = vigenere_one_time_pad_decrypt(encrypted_text, key_stream)
+    print("Decrypted plaintext:", decrypted_text)
