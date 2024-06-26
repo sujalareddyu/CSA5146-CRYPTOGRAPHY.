@@ -1,0 +1,21 @@
+
+import math
+
+def calculate_possible_keys():
+    # Number of ways to choose 25 letters from 26 (excluding 'J')
+    ways_to_choose = 26
+    
+    # Factorial of 25 (arrangements of 25 letters)
+    arrangements = math.factorial(25)
+    
+    # Total number of possible keys
+    total_keys = ways_to_choose * arrangements
+    
+    # Print the result
+    print(f"Number of possible keys (ignoring equivalent keys): {total_keys}")
+
+def main():
+    calculate_possible_keys()
+
+if __name__ == "__main__":
+    main()
