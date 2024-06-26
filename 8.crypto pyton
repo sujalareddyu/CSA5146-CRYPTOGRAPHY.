@@ -1,0 +1,76 @@
+import string
+
+# Function to generate the cipher alphabet from a keyword
+def generate_cipher_alphabet(keyword):
+    # Remove any duplicate letters in the keyword
+    keyword = ''.join(dict.fromkeys(keyword))
+    
+    # Initialize the cipher alphabet with the unique letters from the keyword
+    cipher_alphabet = list(keyword)
+    
+    # Add the remaining unused letters of the alphabet
+    alphabet = string.ascii_uppercase
+    for char in alphabet:
+        if char not in cipher_alphabet:
+            cipher_alphabet.append(char)
+    
+    return ''.join(cipher_alphabet)
+
+# Function to create encryption and decryption mappings
+def create_mappings(keyword):
+    plain_alphabet = string.ascii_uppercase
+    cipher_alphabet = generate_cipher_alphabet(keyword.upper())
+    
+    # Create encryption dictionary
+    encryption_map = {}
+    for i in range(len(plain_alphabet)):
+        encryption_map[plain_alphabet[i]] = cipher_alphabet[i]
+    
+    # Create decryption dictionary
+    decryption_map = {}
+    for i in range(len(cipher_alphabet)):
+        decryption_map[cipher_alphabet[i]] = plain_alphabet[i]
+    
+    return encryption_map, decryption_map
+
+# Function to encrypt plaintext using monoalphabetic cipher with a keyword
+def monoalphabetic_encrypt(plaintext, keyword):
+    encryption_map, _ = create_mappings(keyword)
+    
+    ciphertext = []
+    for char in plaintext.upper():
+        if char.isalpha():
+            ciphertext.append(encryption_map[char])
+        else:
+            ciphertext.append(char)  # Keep non-alphabetic characters unchanged
+    
+    return ''.join(ciphertext)
+
+# Function to decrypt ciphertext using monoalphabetic cipher with a keyword
+def monoalphabetic_decrypt(ciphertext, keyword):
+    _, decryption_map = create_mappings(keyword)
+    
+    plaintext = []
+    for char in ciphertext.upper():
+        if char.isalpha():
+            plaintext.append(decryption_map[char])
+        else:
+            plaintext.append(char)  # Keep non-alphabetic characters unchanged
+    
+    return ''.join(plaintext)
+
+# Main function to demonstrate monoalphabetic cipher with keyword
+def main():
+    keyword = "CIPHER"
+    plaintext = "Hello World!"
+    
+    # Encrypt plaintext
+    encrypted_text = monoalphabetic_encrypt(plaintext, keyword)
+    print("Encrypted:", encrypted_text)
+    
+    # Decrypt ciphertext
+    decrypted_text = monoalphabetic_decrypt(encrypted_text, keyword)
+    print("Decrypted:", decrypted_text)
+
+if __name__ == "__main__":
+    main()
