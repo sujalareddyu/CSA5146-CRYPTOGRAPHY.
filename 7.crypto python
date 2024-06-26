@@ -1,0 +1,49 @@
+from collections import Counter
+
+# Function to decrypt ciphertext using a simple substitution cipher
+def decrypt_simple_substitution(ciphertext):
+    # Frequency analysis to find the most common characters
+    freq = Counter(ciphertext)
+    most_common = freq.most_common(3)  # Get the three most common characters
+    
+    # Assuming the most frequent character is 'e'
+    e_cipher = most_common[0][0]
+    e_plain = 'e'
+    
+    # Assuming the second most frequent character is 't'
+    t_cipher = most_common[1][0]
+    t_plain = 't'
+    
+    # Assuming the third most frequent character is 'h'
+    h_cipher = most_common[2][0]
+    h_plain = 'h'
+    
+    # Decrypt the ciphertext using these assumptions
+    decrypted_text = []
+    for char in ciphertext:
+        if char == e_cipher:
+            decrypted_text.append(e_plain)
+        elif char == t_cipher:
+            decrypted_text.append(t_plain)
+        elif char == h_cipher:
+            decrypted_text.append(h_plain)
+        else:
+            decrypted_text.append(char)
+    
+    return ''.join(decrypted_text)
+
+# Main function to decrypt the ciphertext
+def main():
+    ciphertext = ("53‡‡†305))6*;4826)4‡.)4‡);806*;48†8¶60))85;;]8*;:‡*8†83"
+                  "(88)5*†;46(;88*96*?;8)*‡(;485);5*†2:*‡(;4956*2(5*—4)8¶8*"
+                  ";4069285);)6†8)4‡‡;1(‡9;48081;8:8‡1;48†85;4)485†528806*81"
+                  " (‡9;48;(88;4(‡?34;48)4‡;161;:188;‡?;")
+    
+    # Decrypt using simple substitution
+    decrypted_message = decrypt_simple_substitution(ciphertext)
+    
+    print("Decrypted message:")
+    print(decrypted_message)
+
+if __name__ == "__main__":
+    main()
