@@ -1,0 +1,53 @@
+import numpy as np
+
+# Function to convert a message into numeric form (A=0, B=1, ..., Z=25)
+def text_to_numeric(message):
+    return [ord(char.upper()) - ord('A') for char in message if char.isalpha()]
+
+# Function to convert numeric values back to text
+def numeric_to_text(numeric):
+    return ''.join(chr(i + ord('A')) for i in numeric)
+
+# Function to encrypt using Hill cipher with a 2x2 key matrix
+def hill_encrypt(message, key):
+    # Convert message to numeric form
+    numeric_message = text_to_numeric(message)
+    
+    # Pad the message if its length is not even
+    if len(numeric_message) % 2 != 0:
+        numeric_message.append(ord('X') - ord('A'))  # append 'X' as padding
+    
+    # Reshape numeric message into 2-column matrix
+    num_blocks = len(numeric_message) // 2
+    matrix_message = np.array(numeric_message).reshape(num_blocks, 2)
+    
+    # Key matrix
+    key_matrix = np.array(key)
+    
+    # Encrypt each block
+    encrypted_blocks = []
+    for block in matrix_message:
+        # Matrix multiplication modulo 26
+        encrypted_block = np.dot(key_matrix, block) % 26
+        encrypted_blocks.append(encrypted_block)
+    
+    # Convert encrypted blocks back to numeric form
+    encrypted_numeric = [item for sublist in encrypted_blocks for item in sublist]
+    
+    # Convert numeric encrypted message to text
+    encrypted_text = numeric_to_text(encrypted_numeric)
+    
+    return encrypted_text
+
+# Define the key matrix
+key_matrix = [[9, 4], [5, 7]]
+
+# Original plaintext message
+plaintext = "meet me at the usual place at ten rather than eight oclock"
+
+# Encrypt the message
+ciphertext = hill_encrypt(plaintext, key_matrix)
+
+# Print the encrypted message
+print("Encrypted ciphertext:")
+print(ciphertext)
