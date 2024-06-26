@@ -1,0 +1,52 @@
+
+from Crypto.Cipher import DES3
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
+
+# Function to perform 3DES encryption in CBC mode
+def encrypt_3des_cbc(plaintext, key):
+    # Ensure the key is 24 bytes long
+    if len(key) < 24:
+        key += b'\0' * (24 - len(key))
+    elif len(key) > 24:
+        key = key[:24]
+
+    # Generate a random IV
+    iv = get_random_bytes(8)
+
+    # Create the cipher object and encrypt the data
+    cipher = DES3.new(key, DES3.MODE_CBC, iv)
+    ciphertext = cipher.encrypt(pad(plaintext, DES3.block_size))
+
+    # Return the IV and the ciphertext
+    return iv + ciphertext
+
+# Function to perform 3DES decryption in CBC mode
+def decrypt_3des_cbc(ciphertext, key):
+    # Ensure the key is 24 bytes long
+    if len(key) < 24:
+        key += b'\0' * (24 - len(key))
+    elif len(key) > 24:
+        key = key[:24]
+
+    # Extract the IV and the actual ciphertext
+    iv = ciphertext[:8]
+    actual_ciphertext = ciphertext[8:]
+
+    # Create the cipher object and decrypt the data
+    cipher = DES3.new(key, DES3.MODE_CBC, iv)
+    plaintext = unpad(cipher.decrypt(actual_ciphertext), DES3.block_size)
+
+    return plaintext
+
+# Test the encryption and decryption
+plaintext = b"Hello, this is a test message for 3DES in CBC mode!"
+key = b"this_is_a_secret_key_for_3des"
+
+# Encrypt the plaintext
+encrypted = encrypt_3des_cbc(plaintext, key)
+print("Encrypted:", encrypted)
+
+# Decrypt the ciphertext
+decrypted = decrypt_3des_cbc(encrypted, key)
+print("Decrypted:", decrypted)
