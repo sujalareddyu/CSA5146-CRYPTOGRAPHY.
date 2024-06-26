@@ -1,0 +1,20 @@
+def monoalphabetic_substitution(plaintext):
+    ciphertext = []
+    for char in plaintext:
+        if char.isalpha():
+            if char.isupper():
+                substituted_char = chr(ord('Z') - (ord(char) - ord('A')))  # Example substitution key
+            else:
+                substituted_char = chr(ord('z') - (ord(char) - ord('a')))  # Example substitution key
+            ciphertext.append(substituted_char)
+        else:
+            ciphertext.append(char)  # Non-alphabetic characters remain unchanged
+    return ''.join(ciphertext)
+
+def main():
+    plaintext = input("Enter plaintext: ")
+    ciphertext = monoalphabetic_substitution(plaintext)
+    print("Ciphertext:", ciphertext)
+
+if __name__ == "__main__":
+    main()
