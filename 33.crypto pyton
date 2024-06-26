@@ -1,0 +1,33 @@
+from Crypto.Cipher import DES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
+import base64
+
+def des_encrypt(key, plaintext):
+    cipher = DES.new(key, DES.MODE_ECB)
+    padded_plaintext = pad(plaintext, DES.block_size)
+    ciphertext = cipher.encrypt(padded_plaintext)
+    return base64.b64encode(ciphertext).decode('utf-8')
+
+def des_decrypt(key, ciphertext):
+    cipher = DES.new(key, DES.MODE_ECB)
+    ciphertext = base64.b64decode(ciphertext)
+    decrypted = cipher.decrypt(ciphertext)
+    unpadded_plaintext = unpad(decrypted, DES.block_size)
+    return unpadded_plaintext.decode('utf-8')
+
+def main():
+    # Example key and plaintext
+    key = get_random_bytes(8)  # Generate a random 56-bit (8 bytes) key
+    plaintext = "Hello, DES encryption and decryption!"
+
+    # Encryption
+    encrypted = des_encrypt(key, plaintext.encode('utf-8'))
+    print(f"Ciphertext: {encrypted}")
+
+    # Decryption
+    decrypted = des_decrypt(key, encrypted)
+    print(f"Decrypted plaintext: {decrypted}")
+
+if __name__ == "__main__":
+    main()
