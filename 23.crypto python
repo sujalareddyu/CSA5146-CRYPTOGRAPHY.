@@ -1,0 +1,116 @@
+def permute(bits, permutation):
+    return [bits[p] for p in permutation]
+
+def shift_left(bits, shifts):
+    return bits[shifts:] + bits[:shifts]
+
+def generate_keys(key):
+    p10 = [2, 4, 1, 6, 3, 9, 0, 8, 7, 5]
+    p8 = [5, 2, 6, 3, 7, 4, 9, 8]
+    key = permute(key, p10)
+    left, right = key[:5], key[5:]
+    left, right = shift_left(left, 1), shift_left(right, 1)
+    k1 = permute(left + right, p8)
+    left, right = shift_left(left, 2), shift_left(right, 2)
+    k2 = permute(left + right, p8)
+    return k1, k2
+
+def sbox(bits, sbox):
+    row = int(f"{bits[0]}{bits[3]}", 2)
+    col = int(f"{bits[1]}{bits[2]}", 2)
+    return [int(x) for x in format(sbox[row][col], '02b')]
+
+def f_function(bits, key):
+    ep = [3, 0, 1, 2, 1, 2, 3, 0]
+    p4 = [1, 3, 2, 0]
+    s0 = [
+        [1, 0, 3, 2],
+        [3, 2, 1, 0],
+        [0, 2, 1, 3],
+        [3, 1, 3, 2]
+    ]
+    s1 = [
+        [0, 1, 2, 3],
+        [2, 0, 1, 3],
+        [3, 0, 1, 0],
+        [2, 1, 0, 3]
+    ]
+    expanded = permute(bits, ep)
+    xored = [expanded[i] ^ key[i] for i in range(8)]
+    left, right = xored[:4], xored[4:]
+    sbox_output = sbox(left, s0) + sbox(right, s1)
+    return permute(sbox_output, p4)
+
+def sdes_round(bits, key):
+    left, right = bits[:4], bits[4:]
+    f_output = f_function(right, key)
+    xored = [left[i] ^ f_output[i] for i in range(4)]
+    return right + xored
+
+def sdes_encrypt_block(plaintext, key1, key2):
+    ip = [1, 5, 2, 0, 3, 7, 4, 6]
+    ip_inv = [3, 0, 2, 4, 6, 1, 7, 5]
+    plaintext = permute(plaintext, ip)
+    first_round = sdes_round(plaintext, key1)
+    swapped = first_round[4:] + first_round[:4]
+    second_round = sdes_round(swapped, key2)
+    ciphertext = permute(second_round, ip_inv)
+    return ciphertext
+
+def sdes_decrypt_block(ciphertext, key1, key2):
+    return sdes_encrypt_block(ciphertext, key2, key1)
+
+def sdes_encrypt(plaintext, key):
+    key1, key2 = generate_keys(key)
+    ciphertext = []
+    for i in range(0, len(plaintext), 8):
+        block = plaintext[i:i+8]
+        encrypted_block = sdes_encrypt_block(block, key1, key2)
+        ciphertext.extend(encrypted_block)
+    return ciphertext
+
+def sdes_decrypt(ciphertext, key):
+    key1, key2 = generate_keys(key)
+    plaintext = []
+    for i in range(0, len(ciphertext), 8):
+        block = ciphertext[i:i+8]
+        decrypted_block = sdes_decrypt_block(block, key1, key2)
+        plaintext.extend(decrypted_block)
+    return plaintext
+
+def ctr_encrypt(plaintext, key, counter):
+    key_length = 10  # Length of the S-DES key
+    ciphertext = []
+    for i in range(0, len(plaintext), key_length):
+        plaintext_block = plaintext[i:i+key_length]
+        counter_block = format(counter, '08b')[:key_length]  # Ensure counter is the same size as the block
+        key_block = [int(plaintext_block[j]) ^ int(counter_block[j]) for j in range(key_length)]
+        encrypted_block = sdes_encrypt(key_block, key)
+        ciphertext.extend(encrypted_block)
+        counter += 1
+    return ciphertext
+
+def ctr_decrypt(ciphertext, key, counter):
+    key_length = 10  # Length of the S-DES key
+    plaintext = []
+    for i in range(0, len(ciphertext), key_length):
+        ciphertext_block = ciphertext[i:i+key_length]
+        counter_block = format(counter, '08b')[:key_length]  # Ensure counter is the same size as the block
+        key_block = [int(ciphertext_block[j]) ^ int(counter_block[j]) for j in range(key_length)]
+        decrypted_block = sdes_decrypt(key_block, key)
+        plaintext.extend(decrypted_block)
+        counter += 1
+    return plaintext
+
+# Test data
+plaintext = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0]
+key = [0, 1, 1, 1, 1, 1, 1, 1, 1, 0]
+counter = 0
+
+# Encrypt
+encrypted = ctr_encrypt(plaintext, key, counter)
+print("Encrypted:", encrypted)
+
+# Decrypt
+decrypted = ctr_decrypt(encrypted, key, counter)
+print("Decrypted:", decrypted)
